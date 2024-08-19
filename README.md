@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>README - Tienda Ficticia de Ropa API</title>
-</head>
-<body>
+
 
 <h1>Tienda Ficticia de Ropa - API</h1>
 
@@ -36,12 +29,10 @@
 <ol>
     <li>Clona el repositorio:</li>
     <pre><code>git clone &lt;URL-del-repositorio&gt;</code></pre>
-
     <li>Cambia a la rama deseada:</li>
     <pre><code>git checkout database-version</code></pre>
     <p>o</p>
     <pre><code>git checkout json-version</code></pre>
-
     <li>Instala las dependencias:</li>
     <pre><code>npm install</code></pre>
 </ol>
@@ -67,5 +58,4 @@
 <h2>Licencia</h2>
 <p>Este proyecto está licenciado bajo la <a href="LICENSE">Licencia MIT</a>.</p>
 
-</body>
-</html>
+
