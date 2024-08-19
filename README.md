@@ -52,10 +52,5 @@
     <pre><code>npm start</code></pre>
 </ol>
 
-<h2>Contribuciones</h2>
-<p>Las contribuciones son bienvenidas. Por favor, abre un issue o un pull request con tus mejoras.</p>
-
-<h2>Licencia</h2>
-<p>Este proyecto está licenciado bajo la <a href="LICENSE">Licencia MIT</a>.</p>
 
 
