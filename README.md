@@ -1,6 +1,6 @@
 
 
-<h1>Tienda Ficticia de Ropa - API</h1>
+<h1>RavenShop - API</h1>
 
 <p>
     API desarrollada en Node.js para gestionar una tienda ficticia de ropa. El proyecto ofrece dos versiones en sus ramas, adaptadas a diferentes necesidades de almacenamiento: una basada en base de datos y otra en archivos JSON.
