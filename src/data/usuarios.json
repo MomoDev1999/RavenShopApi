@@ -1,0 +1,13 @@
+[
+    {
+      "id": 1,
+      "nombre": "Juan Pérez",
+      "correo": "juan.perez@example.com",
+      "usuario": "juanp",
+      "password": "123456",
+      "direccion": "Calle Falsa 123",
+      "fecha_nacimiento": "1990-01-01",
+      "telefono": "123456789"
+    }
+  ]
+  

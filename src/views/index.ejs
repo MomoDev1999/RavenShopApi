@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MiTienda (Raven) - API</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        padding-top: 50px;
+      }
+      .api-docs {
+        margin: auto;
+      }
+      .section-title {
+        margin-top: 30px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 10px;
+      }
+      a,
+      p,
+      li {
+        font-size: small;
+      }
+      h5 {
+        font-size: medium;
+      }
+      .json-container {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 5px;
+        padding: 15px;
+        font-family: "Courier New", Courier, monospace;
+        font-size: small;
+        color: #2b2b2b;
+        overflow-x: auto;
+        margin-top: 5px;
+        margin-bottom: 20px;
+      }
+      .json-key {
+        color: #d63384;
+      }
+      .json-value {
+        color: #0056b3;
+      }
+      .json-string {
+        color: #d63384;
+      }
+      .json-number {
+        color: #fd7e14;
+      }
+      .json-boolean {
+        color: #20c997;
+      }
+      .json-null {
+        color: #6c757d;
+      }
+      .json-bracket {
+        color: #343a40;
+      }
+      .card-dark {
+        background-color: #343a40;
+        color: #ffffff;
+        border: 1px solid #495057;
+      }
+      .card-dark .badge {
+        background-color: #007bff;
+        color: #ffffff;
+      }
+      .card-dark p,
+      .card-dark ul {
+        color: #e9ecef;
+      }
+
+      /* gif */
+      .logo-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        z-index: 9999;
+      }
+
+      .logo-container img {
+        width: 100%;
+        height: auto;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .dialog {
+        position: fixed;
+        bottom: 100px; /* Adjust based on your design */
+        right: 120px; /* Position the dialog to the left of the logo */
+        width: 250px;
+        background-color: #007bff;
+        color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        padding: 15px;
+        z-index: 9999;
+      }
+
+      .dialog.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .dialog-arrow {
+        position: absolute;
+        top: 50%;
+        right: 100%;
+        margin-top: -10px;
+        width: 0;
+        height: 0;
+        border-width: 10px;
+        border-style: solid;
+        border-color: transparent #333 transparent transparent;
+      }
+
+      .dialog-content {
+        animation: fadeIn 1s ease forwards;
+      }
+
+      .dialog-title {
+        font-family: "Press Start 2P", system-ui;
+        font-style: normal;
+        font-weight: 400;
+        font-size: 10px;
+        text-align: center;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .custom-navbar {
+        background-color: #343a40; /* Tono oscuro elegante */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+        padding: 0.75rem 1rem; /* Espaciado */
+      }
+
+      .navbar-brand {
+        color: #f8f9fa; /* Color blanco */
+        font-weight: bold;
+        font-size: 1.25rem;
+        text-align: center;
+      }
+
+      .navbar-toggler {
+        border-color: transparent;
+      }
+
+      .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' fill='%23f8f9fa' viewBox='0 0 30 30'><path stroke='rgba(255, 255, 255, 1)' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>");
+      }
+
+      .nav-link {
+        color: #f8f9fa; /* Color blanco */
+        margin: 0 1rem; /* Espaciado entre los links */
+        font-size: 1rem; /* Tamaño de fuente */
+      }
+
+      .nav-link:hover {
+        color: #adb5bd; /* Color más claro al hover */
+      }
+
+      .navbar-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .navbar-collapse {
+        justify-content: center;
+      }
+
+      /* Load Google Font */
+      @import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Oswald:wght@200..700&family=Press+Start+2P&display=swap");
+    </style>
+  </head>
+  <body>
+    <div class="logo-container">
+      <img
+        src="https://mir-s3-cdn-cf.behance.net/project_modules/disp/ad5b8735816219.57060ce195810.gif"
+        alt="Logo"
+        onclick="showDialog()"
+      />
+    </div>
+
+    <!-- Dialog -->
+    <div id="dialog" class="dialog">
+      <div class="dialog-content">
+        <h2 class="dialog-title"></h2>
+      </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary shadow">
+      <div class="container">
+        <div
+          class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2"
+        >
+          <ul class="navbar-nav mx-auto">
+            <a class="navbar-brand" href="/">Raven API</a>
+            <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target=".dual-collapse2"
+              aria-controls="navbarNav"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <li class="nav-item">
+              <a class="nav-link" href="#overview">Visión General</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#endpoints">Endpoints</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#usage">Uso</a>
+            </li>
+          </ul>
+        </div>
+        <div class="mx-auto order-0"></div>
+      </div>
+    </nav>
+
+    <div class="container api-docs">
+      <section id="overview">
+        <h2 class="section-title">Visión General</h2>
+        <p>
+          Esta es la documentación para la API de MiTienda (Raven). La API
+          proporciona acceso a los productos, categorías y usuarios en la
+          tienda. Lo mejor de todo es que no necesitas configurar una base de
+          datos; toda la información se gestiona a través de archivos JSON
+          almacenados directamente en el proyecto.
+        </p>
+      </section>
+
+      <section id="endpoints">
+        <h2 class="section-title">Endpoints</h2>
+        <div class="accordion" id="apiEndpoints">
+          <!-- Productos -->
+          <div class="accordion-item shadow">
+            <h3 class="accordion-header" id="headingProductos">
+              <button
+                class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseProductos"
+                aria-expanded="false"
+                aria-controls="collapseProductos"
+              >
+                Productos
+              </button>
+            </h3>
+            <div
+              id="collapseProductos"
+              class="accordion-collapse collapse"
+              aria-labelledby="headingProductos"
+              data-bs-parent="#apiEndpoints"
+            >
+              <div class="accordion-body">
+                <div class="json-container">
+                  <code>
+                    <span class="json-bracket">{</span><br />
+                    &nbsp;&nbsp;<span class="json-key">"id"</span>:
+                    <span class="json-number">1</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"title"</span>:
+                    <span class="json-string"
+                      >"Fjallraven - Foldsack No. 1 Backpack, Fits 15
+                      Laptops"</span
+                    >,<br />
+                    &nbsp;&nbsp;<span class="json-key">"price"</span>:
+                    <span class="json-string">"86948"</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"description"</span>:
+                    <span class="json-string"
+                      >"Your perfect pack for everyday use and walks in the
+                      forest. Stash your laptop (up to 15 inches) in the padded
+                      sleeve, your everyday"</span
+                    >,<br />
+                    &nbsp;&nbsp;<span class="json-key">"category"</span>:
+                    <span class="json-string">"men's clothing"</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"image"</span>:
+                    <span class="json-string"
+                      >"http://localhost:3000/ruta-imagen"</span
+                    >,<br />
+                    &nbsp;&nbsp;<span class="json-key">"rating"</span>:
+                    <span class="json-bracket">{</span><br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"rate"</span
+                    >: <span class="json-number">3.9</span>,<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"count"</span
+                    >: <span class="json-number">120</span><br />
+                    &nbsp;&nbsp;<span class="json-bracket">}</span><br />
+                    <span class="json-bracket">}</span>
+                  </code>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-primary me-1">GET</div>
+                      /api/productos
+                    </h5>
+                    <p>Obtiene una lista de todos los productos.</p>
+                    <ul>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con la lista de productos.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-secondary me-1">POST</div>
+                      /api/productos
+                    </h5>
+                    <p>Crea un nuevo producto.</p>
+                    <ul>
+                      <li>
+                        <strong>Solicitud:</strong> JSON con los datos del
+                        producto a crear.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 201, JSON
+                        con el nuevo producto.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-primary me-1">GET</div>
+                      /api/productos/:id
+                    </h5>
+                    <p>Obtiene un producto específico por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Parámetros:</strong> <code>:id</code> - ID del
+                        producto a obtener.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con el producto especificado. Código de estado 404 si el
+                        producto no se encuentra.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-info me-1">PUT</div>
+                      /api/productos/:id
+                    </h5>
+                    <p>Actualiza un producto existente por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Solicitud:</strong> JSON con los datos
+                        actualizados del producto.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con la categoría actualizada.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-danger me-1">DELETE</div>
+                      /api/productos/:id
+                    </h5>
+                    <p>Elimina un producto por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Parámetros:</strong> <code>:id</code> - ID del
+                        producto a eliminar.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 204 si la
+                        eliminación es exitosa. Código de estado 404 si el
+                        producto no se encuentra.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-primary me-1">GET</div>
+                      /api/productos/:id
+                    </h5>
+                    <p>Obtiene un producto específico por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Parámetros:</strong> <code>:id</code> - ID del
+                        producto a obtener.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con el producto especificado. Código de estado 404 si el
+                        producto no se encuentra.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-primary me-1">GET</div>
+                      /api/productos/top10
+                    </h5>
+                    <p>Obtiene los 10 productos con mejor rating.</p>
+                    <ul>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con los 10 productos con mejor rating.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Categorías -->
+          <div class="accordion-item shadow">
+            <h3 class="accordion-header" id="headingCategorias">
+              <button
+                class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseCategorias"
+                aria-expanded="false"
+                aria-controls="collapseCategorias"
+              >
+                Categorías
+              </button>
+            </h3>
+            <div
+              id="collapseCategorias"
+              class="accordion-collapse collapse"
+              aria-labelledby="headingCategorias"
+              data-bs-parent="#apiEndpoints"
+            >
+              <div class="accordion-body">
+                <div class="json-container">
+                  <code>
+                    <span class="json-bracket">{</span><br />
+                    &nbsp;&nbsp;<span class="json-key">"id"</span>:
+                    <span class="json-number">1</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"name"</span>:
+                    <span class="json-string">"Electrónica"</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"subcategories"</span>:
+                    <span class="json-bracket">{</span><br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"id"</span>:
+                    <span class="json-number">101</span>,<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"name"</span
+                    >: <span class="json-string">"Teléfonos"</span><br />
+                    &nbsp;&nbsp;<span class="json-bracket">}</span><br />
+                    <span class="json-bracket">}</span>
+                  </code>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-primary me-1">GET</div>
+                      /api/categorias
+                    </h5>
+                    <p>Obtiene una lista de todas las categorías.</p>
+                    <ul>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con la lista de categorías.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-secondary me-1">POST</div>
+                      /api/categorias
+                    </h5>
+                    <p>Crea una nueva categoría.</p>
+                    <ul>
+                      <li>
+                        <strong>Solicitud:</strong> JSON con los datos de la
+                        categoría a crear.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 201, JSON
+                        con la nueva categoría.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-primary me-1">GET</div>
+                      /api/categorias/:id
+                    </h5>
+                    <p>Obtiene una categoría específica por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Parámetros:</strong> <code>:id</code> - ID de la
+                        categoría a obtener.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con la categoría especificada. Código de estado 404 si
+                        la categoría no se encuentra.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-info me-1">PUT</div>
+                      /api/categorias/:id
+                    </h5>
+                    <p>Actualiza una categoría existente por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Solicitud:</strong> JSON con los datos
+                        actualizados de la categoría.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con la categoría actualizada.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-danger me-1">DELETE</div>
+                      /api/categorias/:id
+                    </h5>
+                    <p>Elimina una categoría por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Parámetros:</strong> <code>:id</code> - ID de la
+                        categoría a eliminar.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 204 si la
+                        eliminación es exitosa. Código de estado 404 si la
+                        categoría no se encuentra.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Usuarios -->
+          <div class="accordion-item shadow">
+            <h3 class="accordion-header" id="headingUsuarios">
+              <button
+                class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseUsuarios"
+                aria-expanded="false"
+                aria-controls="collapseUsuarios"
+              >
+                Usuarios
+              </button>
+            </h3>
+            <div
+              id="collapseUsuarios"
+              class="accordion-collapse collapse"
+              aria-labelledby="headingUsuarios"
+              data-bs-parent="#apiEndpoints"
+            >
+              <div class="accordion-body">
+                <div class="json-container">
+                  <code>
+                    <span class="json-bracket">{</span><br />
+                    &nbsp;&nbsp;<span class="json-key">"id"</span>:
+                    <span class="json-number">1</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"nombre"</span>:
+                    <span class="json-string">"John Doe"</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"usuario"</span>:
+                    <span class="json-string">"johnd"</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"password"</span>:
+                    <span class="json-string">"123456"</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"direccion"</span>:
+                    <span class="json-string">"Calle Falsa 123"</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"fecha_nacimiento"</span
+                    >: <span class="json-string">"1990-01-01"</span>,<br />
+                    &nbsp;&nbsp;<span class="json-key">"correo"</span>:
+                    <span class="json-string">"john.doeexample.com"</span><br />
+                    <span class="json-bracket">}</span>
+                  </code>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-primary me-1">GET</div>
+                      /api/usuarios
+                    </h5>
+                    <p>Obtiene una lista de todos los usuarios.</p>
+                    <ul>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con la lista de usuarios.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-secondary me-1">POST</div>
+                      /api/usuarios
+                    </h5>
+                    <p>Crea un nuevo usuario.</p>
+                    <ul>
+                      <li>
+                        <strong>Solicitud:</strong> JSON con los datos del
+                        usuario a crear.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 201, JSON
+                        con el nuevo usuario.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-primary me-1">GET</div>
+                      /api/usuarios/:id
+                    </h5>
+                    <p>Obtiene un usuario específico por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Parámetros:</strong> <code>:id</code> - ID del
+                        usuario a obtener.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con el usuario especificado. Código de estado 404 si el
+                        usuario no se encuentra.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-info me-1">PUT</div>
+                      /api/usuarios/:id
+                    </h5>
+                    <p>Actualiza un usuario existente por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Solicitud:</strong> JSON con los datos
+                        actualizados del usuario.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 200, JSON
+                        con el usuario actualizado.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card card-dark mb-3">
+                  <div class="card-body">
+                    <h5>
+                      <div class="badge bg-danger me-1">DELETE</div>
+                      /api/usuarios/:id
+                    </h5>
+                    <p>Elimina un usuario por su ID.</p>
+                    <ul>
+                      <li>
+                        <strong>Parámetros:</strong> <code>:id</code> - ID del
+                        usuario a eliminar.
+                      </li>
+                      <li>
+                        <strong>Respuesta:</strong> Código de estado 204 si la
+                        eliminación es exitosa. Código de estado 404 si el
+                        usuario no se encuentra.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="usage">
+        <h2 class="mt-4">Uso</h2>
+        <p>
+          <i class="bi bi-info-circle text-info"></i>
+          Para utilizar esta API, simplemente realiza solicitudes HTTP a los
+          endpoints descritos anteriormente. Puedes usar herramientas como
+          Postman o curl para interactuar con la API. Ten en cuenta que es
+          necesario proporcionar una IP permitida y una API key para acceder a
+          los endpoints.
+        </p>
+        <!-- Añadir contenido sobre uso aquí -->
+      </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      const dialogMessages = [
+        "¡Hola! ¿Cómo puedo ayudarte hoy?",
+        "Recuerda que nuestra API es segura y solo permite acceso con una API key válida.",
+        "Para una mejor experiencia, asegúrate de tener tus datos siempre actualizados.",
+        "Si necesitas asistencia, no dudes en consultar nuestra documentación completa.",
+        "¿Sabías que el endpoint `/productos` también soporta búsquedas filtradas por categoría?",
+        "Nuestra API está diseñada para ser intuitiva y fácil de integrar con tus aplicaciones.",
+        "Estamos aquí para ayudarte a obtener la información que necesitas de manera rápida y eficiente.",
+        "No olvides revisar los códigos de estado de las respuestas para comprender mejor los resultados de tus solicitudes.",
+        "La documentación de nuestra API se actualiza regularmente para incluir nuevas características y mejoras.",
+        "Para un rendimiento óptimo, realiza solicitudes en lotes cuando trabajes con grandes volúmenes de datos.",
+        "Asegúrate de leer nuestra sección de FAQ para obtener respuestas a las preguntas más frecuentes.",
+        "Estamos continuamente mejorando nuestra API para ofrecerte nuevas funcionalidades y una mejor experiencia.",
+        "¡Gracias por formar parte de nuestra comunidad! Tu feedback es muy valioso para nosotros.",
+        "Si tienes alguna sugerencia para mejorar nuestra API, no dudes en compartirla con nosotros.",
+      ];
+
+      let timeoutId;
+
+      function getRandomMessage() {
+        // Selecciona un mensaje aleatorio del array
+        const randomIndex = Math.floor(Math.random() * dialogMessages.length);
+        return dialogMessages[randomIndex];
+      }
+
+      function showDialog() {
+        const dialog = document.getElementById("dialog");
+        const dialogTitle = dialog.querySelector(".dialog-title");
+        dialogTitle.textContent = getRandomMessage(); // Establece el mensaje aleatorio
+        dialog.classList.add("show");
+
+        // Cancelar el temporizador anterior si existe
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+
+        // Oculta el diálogo después de unos segundos
+        timeoutId = setTimeout(() => {
+          dialog.classList.remove("show");
+        }, 5000); // Cambia 5000 (milisegundos) para controlar cuánto tiempo permanece visible
+      }
+    </script>
+  </body>
+</html>
