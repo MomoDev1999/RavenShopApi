@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const port = 3000;
 
+// Importar la configuración de la base de datos
+const db = require("./config/database");
+
 // Importar el middleware
 const authMiddleware = require("./middleware/authMiddleware");
 

@@ -1,26 +1,4 @@
-const fs = require("fs");
-const path = require("path");
-
-const usuariosPath = path.join(__dirname, "../data/usuarios.json");
-
-// Leer datos del archivo JSON
-const leerUsuarios = () => {
-  try {
-    const data = fs.readFileSync(usuariosPath);
-    return JSON.parse(data);
-  } catch (error) {
-    throw new Error("Error al leer el archivo de usuarios");
-  }
-};
-
-// Escribir datos en el archivo JSON
-const escribirUsuarios = (usuarios) => {
-  try {
-    fs.writeFileSync(usuariosPath, JSON.stringify(usuarios, null, 2));
-  } catch (error) {
-    throw new Error("Error al escribir en el archivo de usuarios");
-  }
-};
+const { User } = require("../models");
 
 // Validación de teléfono
 const esTelefonoValido = (telefono) => /^[0-9]{8}$/.test(telefono);
@@ -29,41 +7,39 @@ const esTelefonoValido = (telefono) => /^[0-9]{8}$/.test(telefono);
 const esEmailValido = (email) =>
   /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(email);
 
-exports.getAllUsuarios = (req, res) => {
+// Obtener todos los usuarios
+exports.getAllUsuarios = async (req, res) => {
   try {
-    const usuarios = leerUsuarios();
+    const usuarios = await User.findAll();
     res.json(usuarios);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-exports.createUsuario = (req, res) => {
+// Crear un nuevo usuario
+exports.createUsuario = async (req, res) => {
   try {
-    const usuarios = leerUsuarios();
     const nuevoUsuario = req.body;
 
     // Validación de datos
     const errores = [];
-    if (!nuevoUsuario.usuario || nuevoUsuario.usuario.length < 3) {
+    if (!nuevoUsuario.user || nuevoUsuario.user.length < 3) {
       errores.push("Usuario es requerido y debe tener al menos 3 caracteres.");
     }
-    if (!esTelefonoValido(nuevoUsuario.telefono)) {
+    if (!esTelefonoValido(nuevoUsuario.phone)) {
       errores.push("Teléfono es requerido y debe tener exactamente 8 dígitos.");
     }
-    if (!nuevoUsuario.nombre) {
+    if (!nuevoUsuario.name) {
       errores.push("Nombre es requerido.");
     }
-    if (!nuevoUsuario.apellido) {
-      errores.push("Apellido es requerido.");
-    }
-    if (!nuevoUsuario.fecha_nacimiento) {
+    if (!nuevoUsuario.birthdate) {
       errores.push("Fecha de nacimiento es requerida.");
     }
-    if (!esEmailValido(nuevoUsuario.correo)) {
+    if (!esEmailValido(nuevoUsuario.email)) {
       errores.push("Correo electrónico es requerido y debe ser válido.");
     }
-    if (!nuevoUsuario.direccion) {
+    if (!nuevoUsuario.address) {
       errores.push("Dirección es requerida.");
     }
     if (!nuevoUsuario.password || nuevoUsuario.password.length < 6) {
@@ -76,43 +52,42 @@ exports.createUsuario = (req, res) => {
     }
 
     // Verificar si el usuario ya existe
-    const usuarioExistente = usuarios.find(
-      (u) =>
-        u.correo === nuevoUsuario.correo || u.usuario === nuevoUsuario.usuario
-    );
+    const usuarioExistente = await User.findOne({
+      where: {
+        [Sequelize.Op.or]: [
+          { email: nuevoUsuario.email },
+          { user: nuevoUsuario.user },
+        ],
+      },
+    });
+
     if (usuarioExistente) {
-      return res
-        .status(400)
-        .json({
-          message: "El usuario o el correo electrónico ya están registrados.",
-        });
+      return res.status(400).json({
+        message: "El usuario o el correo electrónico ya están registrados.",
+      });
     }
 
-    usuarios.push(nuevoUsuario);
-    escribirUsuarios(usuarios);
-    res.status(201).json(nuevoUsuario);
+    const usuarioCreado = await User.create(nuevoUsuario);
+    res.status(201).json(usuarioCreado);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-exports.updateUsuario = (req, res) => {
+// Actualizar un usuario existente
+exports.updateUsuario = async (req, res) => {
   try {
-    const usuarios = leerUsuarios();
     const { id } = req.params;
     const usuarioActualizado = req.body;
 
     const errores = [];
     if (
-      usuarioActualizado.telefono &&
-      !esTelefonoValido(usuarioActualizado.telefono)
+      usuarioActualizado.phone &&
+      !esTelefonoValido(usuarioActualizado.phone)
     ) {
       errores.push("Teléfono es requerido y debe tener exactamente 8 dígitos.");
     }
-    if (
-      usuarioActualizado.correo &&
-      !esEmailValido(usuarioActualizado.correo)
-    ) {
+    if (usuarioActualizado.email && !esEmailValido(usuarioActualizado.email)) {
       errores.push("Correo electrónico debe ser válido.");
     }
     if (usuarioActualizado.password && usuarioActualizado.password.length < 6) {
@@ -122,17 +97,11 @@ exports.updateUsuario = (req, res) => {
       return res.status(400).json({ message: errores.join(" ") });
     }
 
-    const indiceUsuario = usuarios.findIndex(
-      (usuario) => usuario.id === parseInt(id)
-    );
+    const usuario = await User.findByPk(id);
 
-    if (indiceUsuario !== -1) {
-      usuarios[indiceUsuario] = {
-        ...usuarios[indiceUsuario],
-        ...usuarioActualizado,
-      };
-      escribirUsuarios(usuarios);
-      res.json(usuarios[indiceUsuario]);
+    if (usuario) {
+      await usuario.update(usuarioActualizado);
+      res.json(usuario);
     } else {
       res.status(404).json({ message: "Usuario no encontrado" });
     }
@@ -141,17 +110,15 @@ exports.updateUsuario = (req, res) => {
   }
 };
 
-exports.deleteUsuario = (req, res) => {
+// Eliminar un usuario
+exports.deleteUsuario = async (req, res) => {
   try {
-    const usuarios = leerUsuarios();
     const { id } = req.params;
 
-    const usuariosActualizados = usuarios.filter(
-      (usuario) => usuario.id !== parseInt(id)
-    );
+    const usuario = await User.findByPk(id);
 
-    if (usuarios.length !== usuariosActualizados.length) {
-      escribirUsuarios(usuariosActualizados);
+    if (usuario) {
+      await usuario.destroy();
       res.json({ message: "Usuario eliminado correctamente" });
     } else {
       res.status(404).json({ message: "Usuario no encontrado" });
@@ -162,11 +129,10 @@ exports.deleteUsuario = (req, res) => {
 };
 
 // Obtener un usuario específico por ID
-exports.getUsuarioPorId = (req, res) => {
+exports.getUsuarioPorId = async (req, res) => {
   try {
-    const usuarios = leerUsuarios();
     const { id } = req.params;
-    const usuario = usuarios.find((usuario) => usuario.id === parseInt(id));
+    const usuario = await User.findByPk(id);
 
     if (usuario) {
       res.json(usuario);
