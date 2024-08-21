@@ -34,5 +34,5 @@
     <li>Realiza las migraciones para la creación de las tablas dentro de la carpeta src con el siguiente comando:</li>
     <pre><code>npx sequelize-cli db:migrate</code></pre>
     <li>Inicia la API:</li>
-    <pre><code>npm run dev</code></pre>
+    <pre><code>npm start</code></pre>
 </ol>
