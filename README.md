@@ -21,7 +21,7 @@
 <h2>Requisitos Previos</h2>
 <ul>
     <li>Node.js instalado.</li>
-    <li><a href="#">Base de datos específica</a> (solo para la rama <code>database-version</code>).</li>
+    <li>Base de datos específica (solo para la rama <code>database-version</code>).</li>
     <li>Git instalado para clonar y gestionar el repositorio.</li>
 </ul>
 
