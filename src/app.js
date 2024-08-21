@@ -11,6 +11,7 @@ const authMiddleware = require("./middleware/authMiddleware");
 // Importar las rutas
 const productoRoutes = require("./routes/productoRoutes");
 const categoriasRoutes = require("./routes/categoriasRoutes");
+const subCategoriasRoutes = require("./routes/SubCategoriasRoutes");
 const usuariosRoutes = require("./routes/usuariosRoutes");
 const keyGenerateRoutes = require("./routes/KeyGenerateRoutes");
 
@@ -32,6 +33,7 @@ app.use("/api", authMiddleware());
 // Rutas
 app.use("/api/productos", productoRoutes);
 app.use("/api/categorias", categoriasRoutes);
+app.use("/api/subcategorias", subCategoriasRoutes);
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/generate-apikey", keyGenerateRoutes);
 

@@ -1,70 +1,9 @@
-const fs = require("fs");
-const path = require("path");
-
-const categoriasPath = path.join(__dirname, "../data/categorias.json");
-
-// Leer datos del archivo JSON
-const leerCategorias = () => {
-  try {
-    const data = fs.readFileSync(categoriasPath);
-    const categorias = JSON.parse(data);
-
-    // Validar la estructura del JSON
-    if (!Array.isArray(categorias.categories)) {
-      throw new Error("El formato del archivo de categorías es incorrecto");
-    }
-
-    return categorias;
-  } catch (error) {
-    throw new Error("Error al leer el archivo de categorías: " + error.message);
-  }
-};
-
-// Escribir datos en el archivo JSON
-const escribirCategorias = (categorias) => {
-  try {
-    // Validar la estructura del JSON antes de escribir
-    if (!Array.isArray(categorias.categories)) {
-      throw new Error("El formato de las categorías es incorrecto");
-    }
-    fs.writeFileSync(categoriasPath, JSON.stringify(categorias, null, 2));
-  } catch (error) {
-    throw new Error(
-      "Error al escribir en el archivo de categorías: " + error.message
-    );
-  }
-};
-
-// Validar una categoría
-const validarCategoria = (categoria) => {
-  if (typeof categoria.id !== "number" || typeof categoria.name !== "string") {
-    throw new Error("Datos de categoría incorrectos");
-  }
-
-  if (categoria.subcategories) {
-    if (!Array.isArray(categoria.subcategories)) {
-      throw new Error("El formato de subcategorías es incorrecto");
-    }
-    categoria.subcategories.forEach((subcategoria) => {
-      if (
-        typeof subcategoria.id !== "number" ||
-        typeof subcategoria.name !== "string"
-      ) {
-        throw new Error("Datos de subcategoría incorrectos");
-      }
-    });
-  }
-};
-
-// Verificar si la categoría existe
-const categoriaExiste = (categorias, id) => {
-  return categorias.categories.some((categoria) => categoria.id === id);
-};
+const { Category } = require("../models");
 
 // Obtener todas las categorías
-exports.getAllCategorias = (req, res) => {
+exports.getAllCategorias = async (req, res) => {
   try {
-    const categorias = leerCategorias();
+    const categorias = await Category.findAll();
     res.json(categorias);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -72,67 +11,52 @@ exports.getAllCategorias = (req, res) => {
 };
 
 // Crear una nueva categoría
-exports.createCategoria = (req, res) => {
+exports.createCategoria = async (req, res) => {
   try {
-    const categorias = leerCategorias();
     const nuevaCategoria = req.body;
 
     // Validar los datos de la nueva categoría
-    if (!nuevaCategoria.id || !nuevaCategoria.name) {
-      return res.status(400).json({ message: "Faltan datos requeridos" });
+    if (!nuevaCategoria.name) {
+      return res
+        .status(400)
+        .json({ message: "El nombre de la categoría es requerido" });
     }
 
     // Validar la nueva categoría
-    validarCategoria(nuevaCategoria);
-
-    // Verificar si la categoría ya existe
-    if (categoriaExiste(categorias, nuevaCategoria.id)) {
-      return res.status(400).json({ message: "La categoría ya existe" });
+    if (typeof nuevaCategoria.name !== "string") {
+      return res
+        .status(400)
+        .json({ message: "Datos de categoría incorrectos" });
     }
 
-    categorias.categories.push(nuevaCategoria);
-    escribirCategorias(categorias);
-    res.status(201).json(nuevaCategoria);
+    // Crear la nueva categoría
+    const categoriaCreada = await Category.create(nuevaCategoria);
+
+    res.status(201).json(categoriaCreada);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 // Actualizar una categoría
-exports.updateCategoria = (req, res) => {
+exports.updateCategoria = async (req, res) => {
   try {
-    const categorias = leerCategorias();
     const { id } = req.params;
     const categoriaActualizada = req.body;
 
     // Validar los datos de la categoría actualizada
-    if (!categoriaActualizada.id || !categoriaActualizada.name) {
-      return res.status(400).json({ message: "Faltan datos requeridos" });
+    if (!categoriaActualizada.name) {
+      return res
+        .status(400)
+        .json({ message: "El nombre de la categoría es requerido" });
     }
 
-    validarCategoria(categoriaActualizada);
+    const categoria = await Category.findByPk(id);
 
-    const indiceCategoria = categorias.categories.findIndex(
-      (categoria) => categoria.id === parseInt(id)
-    );
-
-    if (indiceCategoria !== -1) {
-      // Verificar si la categoría con el nuevo ID ya existe
-      if (
-        categoriaActualizada.id !== parseInt(id) &&
-        categoriaExiste(categorias, categoriaActualizada.id)
-      ) {
-        return res
-          .status(400)
-          .json({ message: "La categoría con el nuevo ID ya existe" });
-      }
-
-      categorias.categories[indiceCategoria] = {
-        ...categorias.categories[indiceCategoria],
-        ...categoriaActualizada,
-      };
-      escribirCategorias(categorias);
-      res.json(categorias.categories[indiceCategoria]);
+    if (categoria) {
+      // Actualizar la categoría
+      await categoria.update(categoriaActualizada);
+      res.json(categoria);
     } else {
       res.status(404).json({ message: "Categoría no encontrada" });
     }
@@ -142,17 +66,13 @@ exports.updateCategoria = (req, res) => {
 };
 
 // Eliminar una categoría
-exports.deleteCategoria = (req, res) => {
+exports.deleteCategoria = async (req, res) => {
   try {
-    const categorias = leerCategorias();
     const { id } = req.params;
+    const categoria = await Category.findByPk(id);
 
-    const categoriasActualizadas = categorias.categories.filter(
-      (categoria) => categoria.id !== parseInt(id)
-    );
-
-    if (categorias.categories.length !== categoriasActualizadas.length) {
-      escribirCategorias({ categories: categoriasActualizadas });
+    if (categoria) {
+      await categoria.destroy();
       res.json({ message: "Categoría eliminada correctamente" });
     } else {
       res.status(404).json({ message: "Categoría no encontrada" });
@@ -163,13 +83,10 @@ exports.deleteCategoria = (req, res) => {
 };
 
 // Obtener una categoría específica por ID
-exports.getCategoriaPorId = (req, res) => {
+exports.getCategoriaPorId = async (req, res) => {
   try {
-    const categorias = leerCategorias();
     const { id } = req.params;
-    const categoria = categorias.categories.find(
-      (categoria) => categoria.id === parseInt(id)
-    );
+    const categoria = await Category.findByPk(id);
 
     if (categoria) {
       res.json(categoria);

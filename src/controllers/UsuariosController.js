@@ -1,4 +1,6 @@
 const { User } = require("../models");
+const bcrypt = require("bcrypt");
+const Sequelize = require("sequelize");
 
 // Validación de teléfono
 const esTelefonoValido = (telefono) => /^[0-9]{8}$/.test(telefono);
@@ -6,6 +8,9 @@ const esTelefonoValido = (telefono) => /^[0-9]{8}$/.test(telefono);
 // Validación de email
 const esEmailValido = (email) =>
   /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(email);
+
+// Salts para bcrypt
+const saltRounds = 10;
 
 // Obtener todos los usuarios
 exports.getAllUsuarios = async (req, res) => {
@@ -67,6 +72,10 @@ exports.createUsuario = async (req, res) => {
       });
     }
 
+    // Cifrar la contraseña
+    const hashedPassword = await bcrypt.hash(nuevoUsuario.password, saltRounds);
+    nuevoUsuario.password = hashedPassword;
+
     const usuarioCreado = await User.create(nuevoUsuario);
     res.status(201).json(usuarioCreado);
   } catch (error) {
@@ -100,6 +109,15 @@ exports.updateUsuario = async (req, res) => {
     const usuario = await User.findByPk(id);
 
     if (usuario) {
+      // Cifrar la nueva contraseña si se proporciona
+      if (usuarioActualizado.password) {
+        const hashedPassword = await bcrypt.hash(
+          usuarioActualizado.password,
+          saltRounds
+        );
+        usuarioActualizado.password = hashedPassword;
+      }
+
       await usuario.update(usuarioActualizado);
       res.json(usuario);
     } else {
@@ -139,6 +157,49 @@ exports.getUsuarioPorId = async (req, res) => {
     } else {
       res.status(404).json({ message: "Usuario no encontrado" });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Login de usuario
+exports.loginUsuario = async (req, res) => {
+  try {
+    const { userOrEmail, password } = req.body;
+
+    // Verificar si se proporcionaron ambos campos
+    if (!userOrEmail || !password) {
+      return res
+        .status(400)
+        .json({
+          message: "Usuario o correo electrónico y contraseña son requeridos.",
+        });
+    }
+
+    // Buscar al usuario por nombre de usuario o correo electrónico
+    const usuario = await User.findOne({
+      where: {
+        [Sequelize.Op.or]: [{ email: userOrEmail }, { user: userOrEmail }],
+      },
+    });
+
+    if (!usuario) {
+      return res
+        .status(404)
+        .json({ message: "Usuario o correo electrónico no encontrado." });
+    }
+
+    // Comparar la contraseña proporcionada con la almacenada
+    const coincide = await bcrypt.compare(password, usuario.password);
+
+    if (!coincide) {
+      return res.status(401).json({ message: "Contraseña incorrecta." });
+    }
+
+    // Generar un token de sesión (esto es opcional y depende de tu implementación)
+    // const token = generateToken(usuario); // Implementa la función generateToken según tu necesidad
+
+    res.json({ message: "Inicio de sesión exitoso", user: usuario }); // Incluye el token si lo generas
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

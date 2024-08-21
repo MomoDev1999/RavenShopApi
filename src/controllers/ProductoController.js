@@ -1,32 +1,7 @@
-const fs = require("fs");
-const path = require("path");
-
-const productosPath = path.join(__dirname, "../data/productos.json");
-
-// Leer datos del archivo JSON
-const leerProductos = () => {
-  try {
-    const data = fs.readFileSync(productosPath);
-    return JSON.parse(data);
-  } catch (error) {
-    throw new Error("Error al leer el archivo de productos");
-  }
-};
-
-// Escribir datos en el archivo JSON
-const escribirProductos = (productos) => {
-  try {
-    fs.writeFileSync(productosPath, JSON.stringify(productos, null, 2));
-  } catch (error) {
-    throw new Error("Error al escribir en el archivo de productos");
-  }
-};
+const { Product, Rating, sequelize } = require("../models");
 
 // Validación de producto
 const validarProducto = (producto) => {
-  if (!producto.id || typeof producto.id !== "number") {
-    return "El campo 'id' es obligatorio y debe ser un número";
-  }
   if (
     !producto.title ||
     typeof producto.title !== "string" ||
@@ -37,71 +12,78 @@ const validarProducto = (producto) => {
   if (!producto.price || isNaN(producto.price) || producto.price <= 0) {
     return "El campo 'price' es obligatorio, debe ser un número mayor que 0";
   }
-  if (!producto.description || typeof producto.description !== "string") {
-    return "El campo 'description' es obligatorio y debe ser una cadena de texto";
-  }
-  if (!producto.category || typeof producto.category !== "string") {
-    return "El campo 'category' es obligatorio y debe ser una cadena de texto";
+  if (producto.description && typeof producto.description !== "string") {
+    return "El campo 'description' debe ser una cadena de texto";
   }
   if (
-    !producto.image ||
-    typeof producto.image !== "string" ||
-    !/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i.test(producto.image)
+    producto.image &&
+    (typeof producto.image !== "string" ||
+      !/^https?:\/\/.+\.(jpg|jpeg|png|gif)$/i.test(producto.image))
   ) {
-    return "El campo 'image' es obligatorio, debe ser una URL válida de imagen (jpg, jpeg, png, gif)";
-  }
-  if (
-    !producto.rating ||
-    typeof producto.rating.rate !== "number" ||
-    producto.rating.rate < 0 ||
-    producto.rating.rate > 5
-  ) {
-    return "El campo 'rating.rate' es obligatorio, debe ser un número entre 0 y 5";
-  }
-  if (
-    !producto.rating.count ||
-    typeof producto.rating.count !== "number" ||
-    producto.rating.count < 0
-  ) {
-    return "El campo 'rating.count' es obligatorio, debe ser un número mayor o igual a 0";
+    return "El campo 'image' debe ser una URL válida de imagen (jpg, jpeg, png, gif)";
   }
   return null;
 };
 
 // Obtener todos los productos
-exports.getAllProductos = (req, res) => {
+exports.getAllProductos = async (req, res) => {
   try {
-    const productos = leerProductos();
+    const productos = await Product.findAll({
+      attributes: [
+        "id",
+        "title",
+        "price",
+        "description",
+        "image",
+        [
+          sequelize.literal(
+            "(SELECT AVG(`rate`) FROM `Ratings` WHERE `product_id` = `Product`.`id`)"
+          ),
+          "rate",
+        ],
+      ],
+      include: [
+        {
+          model: Rating,
+          as: "ratings",
+          attributes: [], // No traer columnas de Rating, solo el AVG
+        },
+      ],
+      group: ["Product.id"], // Agrupar por ID del producto
+      order: [["title", "ASC"]], // Ordenar alfabéticamente por título, puedes ajustar esto si lo prefieres
+    });
+
+    // Enviar la respuesta
     res.json(productos);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error al obtener los productos:", error);
+    res.status(500).json({ message: "Error al obtener los productos" });
   }
 };
 
 // Crear un nuevo producto
-exports.createProducto = (req, res) => {
+exports.createProducto = async (req, res) => {
   try {
-    const productos = leerProductos();
     const nuevoProducto = req.body;
-
+    console.log(nuevoProducto);
     // Validación del producto
     const error = validarProducto(nuevoProducto);
     if (error) {
       return res.status(400).json({ message: error });
     }
 
-    productos.push(nuevoProducto);
-    escribirProductos(productos);
-    res.status(201).json(nuevoProducto);
+    // Crear el nuevo producto
+    const productoCreado = await Product.create(nuevoProducto);
+
+    res.status(201).json(productoCreado);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 // Actualizar un producto
-exports.updateProducto = (req, res) => {
+exports.updateProducto = async (req, res) => {
   try {
-    const productos = leerProductos();
     const { id } = req.params;
     const productoActualizado = req.body;
 
@@ -111,17 +93,12 @@ exports.updateProducto = (req, res) => {
       return res.status(400).json({ message: error });
     }
 
-    const indiceProducto = productos.findIndex(
-      (producto) => producto.id === parseInt(id)
-    );
+    const producto = await Product.findByPk(id);
 
-    if (indiceProducto !== -1) {
-      productos[indiceProducto] = {
-        ...productos[indiceProducto],
-        ...productoActualizado,
-      };
-      escribirProductos(productos);
-      res.json(productos[indiceProducto]);
+    if (producto) {
+      // Actualizar el producto
+      await producto.update(productoActualizado);
+      res.json(producto);
     } else {
       res.status(404).json({ message: "Producto no encontrado" });
     }
@@ -131,17 +108,13 @@ exports.updateProducto = (req, res) => {
 };
 
 // Eliminar un producto
-exports.deleteProducto = (req, res) => {
+exports.deleteProducto = async (req, res) => {
   try {
-    const productos = leerProductos();
     const { id } = req.params;
+    const producto = await Product.findByPk(id);
 
-    const productosActualizados = productos.filter(
-      (producto) => producto.id !== parseInt(id)
-    );
-
-    if (productos.length !== productosActualizados.length) {
-      escribirProductos(productosActualizados);
+    if (producto) {
+      await producto.destroy();
       res.json({ message: "Producto eliminado correctamente" });
     } else {
       res.status(404).json({ message: "Producto no encontrado" });
@@ -152,11 +125,10 @@ exports.deleteProducto = (req, res) => {
 };
 
 // Buscar un producto por ID
-exports.getProductoPorId = (req, res) => {
+exports.getProductoPorId = async (req, res) => {
   try {
-    const productos = leerProductos();
     const { id } = req.params;
-    const producto = productos.find((producto) => producto.id === parseInt(id));
+    const producto = await Product.findByPk(id);
 
     if (producto) {
       res.json(producto);
@@ -169,17 +141,90 @@ exports.getProductoPorId = (req, res) => {
 };
 
 // Buscar los 10 productos con mejor rating
-exports.getTop10ProductosPorRating = (req, res) => {
+exports.getTop10ProductosPorRating = async (req, res) => {
   try {
-    const productos = leerProductos();
-    // Ordenar por rating (de mayor a menor)
-    const productosOrdenados = productos.sort(
-      (a, b) => b.rating.rate - a.rating.rate
-    );
-    // Obtener los primeros 10
-    const top10Productos = productosOrdenados.slice(0, 10);
-    res.json(top10Productos);
+    // Usar Sequelize para realizar la consulta
+    const productos = await Product.findAll({
+      attributes: [
+        "id",
+        "title",
+        "price",
+        "description",
+        "image",
+        [
+          sequelize.literal(
+            "(SELECT AVG(`rate`) FROM `Ratings` WHERE `product_id` = `Product`.`id`)"
+          ),
+          "rate",
+        ],
+      ],
+      include: [
+        {
+          model: Rating,
+          as: "ratings",
+          attributes: [], // No queremos traer columnas de Rating, solo el AVG
+        },
+      ],
+      group: ["Product.id"], // Agrupar por ID del producto
+      order: [[sequelize.literal("rate"), "DESC"]], // Ordenar por el promedio de rating
+      limit: 10, // Limitar a los 10 mejores
+    });
+
+    // Enviar la respuesta
+    res.json(productos);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error al obtener los productos por rating:", error);
+    res
+      .status(500)
+      .json({ error: "Error al obtener los productos por rating" });
+  }
+};
+
+// Buscar productos por subcategoría
+exports.getProductosPorSubcategoria = async (req, res) => {
+  try {
+    const { subcategoryId } = req.params;
+
+    const productos = await Product.findAll({
+      attributes: [
+        "id",
+        "title",
+        "price",
+        "description",
+        "image",
+        [
+          sequelize.literal(
+            "(SELECT AVG(`rate`) FROM `Ratings` WHERE `product_id` = `Product`.`id`)"
+          ),
+          "rate",
+        ],
+      ],
+      include: [
+        {
+          model: Rating,
+          as: "ratings",
+          attributes: [], // No traer columnas de Rating, solo el AVG
+        },
+        {
+          model: sequelize.models.Subcategory,
+          as: "subcategories",
+          through: {
+            attributes: [], // No traer columnas de la tabla intermedia
+          },
+          where: { id: subcategoryId },
+          attributes: [], // Solo necesitamos verificar la existencia de la subcategoría
+        },
+      ],
+      group: ["Product.id"], // Asegúrate de que todas las columnas estén agrupadas
+      order: [["title", "ASC"]], // Ordenar alfabéticamente por título
+    });
+
+    // Enviar la respuesta
+    res.json(productos);
+  } catch (error) {
+    console.error("Error al buscar productos por subcategoría:", error);
+    res
+      .status(500)
+      .json({ message: "Error al buscar productos por subcategoría" });
   }
 };
