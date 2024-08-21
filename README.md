@@ -42,6 +42,8 @@
 <h3>Versión con Base de Datos</h3>
 <ol>
     <li>Configura la conexión a la base de datos en el archivo <code>.env</code>.</li>
+    <li>Realiza las migraciones para la creación de las tablas</li>
+    <pre><code>npx sequelize-cli db:migrate</code></pre>
     <li>Inicia la API:</li>
     <pre><code>npm start</code></pre>
 </ol>
