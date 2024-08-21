@@ -31,5 +31,5 @@
 <h3>Versión con Archivos JSON</h3>
 <ol>
     <li>Inicia la API sin necesidad de configuraciones adicionales:</li>
-    <pre><code>npm run dev</code></pre>
+    <pre><code>npm start</code></pre>
 </ol>
