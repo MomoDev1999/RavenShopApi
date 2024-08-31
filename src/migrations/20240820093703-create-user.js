@@ -11,6 +11,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      lastname: {
+        // Nuevo campo agregado
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       email: {
         type: Sequelize.STRING,
         allowNull: false,

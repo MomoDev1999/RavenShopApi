@@ -11,4 +11,10 @@ router.delete("/:id", usuariosController.deleteUsuario); // Eliminar un usuario 
 // Nueva ruta para buscar un usuario por ID
 router.get("/:id", usuariosController.getUsuarioPorId);
 
+// Nueva ruta para verificar si un usuario o correo ya existe
+router.post("/existe", usuariosController.userExists);
+
+// Nueva ruta para login de usuario
+router.post("/login", usuariosController.loginUsuario);
+
 module.exports = router;

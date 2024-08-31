@@ -167,16 +167,13 @@ exports.loginUsuario = async (req, res) => {
   try {
     const { userOrEmail, password } = req.body;
 
-    // Verificar si se proporcionaron ambos campos
     if (!userOrEmail || !password) {
-      return res
-        .status(400)
-        .json({
-          message: "Usuario o correo electrónico y contraseña son requeridos.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Usuario o correo electrónico y contraseña son requeridos.",
+      });
     }
 
-    // Buscar al usuario por nombre de usuario o correo electrónico
     const usuario = await User.findOne({
       where: {
         [Sequelize.Op.or]: [{ email: userOrEmail }, { user: userOrEmail }],
@@ -184,22 +181,45 @@ exports.loginUsuario = async (req, res) => {
     });
 
     if (!usuario) {
-      return res
-        .status(404)
-        .json({ message: "Usuario o correo electrónico no encontrado." });
+      return res.status(404).json({
+        success: false,
+        message: "Usuario o correo electrónico no encontradododo.",
+      });
     }
 
-    // Comparar la contraseña proporcionada con la almacenada
     const coincide = await bcrypt.compare(password, usuario.password);
 
     if (!coincide) {
-      return res.status(401).json({ message: "Contraseña incorrecta." });
+      return res.status(401).json({
+        success: false,
+        message: "Contraseña incorrecta.",
+      });
     }
 
-    // Generar un token de sesión (esto es opcional y depende de tu implementación)
-    // const token = generateToken(usuario); // Implementa la función generateToken según tu necesidad
+    res.json({
+      success: true,
+      user: usuario,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
-    res.json({ message: "Inicio de sesión exitoso", user: usuario }); // Incluye el token si lo generas
+// Verificar si un usuario o correo electrónico ya existe
+exports.userExists = async (req, res) => {
+  try {
+    const { email, user } = req.body;
+
+    const usuarioExistente = await User.findOne({
+      where: {
+        [Sequelize.Op.or]: [{ email }, { user }],
+      },
+    });
+
+    res.status(200).json({ exists: !!usuarioExistente }); // Se asegura de devolver un booleano
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
