@@ -1,4 +1,4 @@
-<h1>RavenShop - API</h1>
+<h1>Products Store - API</h1>
 
 <p>
     API desarrollada en Node.js para gestionar una tienda ficticia de ropa. El proyecto ofrece una versión adaptada a necesidades de almacenamiento utilizando archivos JSON.
